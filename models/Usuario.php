@@ -79,7 +79,7 @@ class Usuario extends ActiveRecord{
         }
         if(strlen($this->password) < 6 ){
             self::$alertas['error'][] = 'El Password Debe Tener al Menos 6 Caracteres';
-        }
+        }   
 
         return self::$alertas;
     }
