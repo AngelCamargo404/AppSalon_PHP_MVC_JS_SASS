@@ -3,6 +3,7 @@ const pasoInicial = 1;
 const pasoFinal = 3;
 
 const cita = {
+    id: '',
     nombre: '',
     fecha: '',
     hora: '',
@@ -22,6 +23,7 @@ function iniciarApp() {
 
     consultarAPI(); // Consulta la API en el backend de PHP
 
+    idCliente(); // Añade el nombre del cliente al objeto de cita
     nombreCliente(); // Añade el nombre del cliente al objeto de cita
     seleccionarFecha(); // Añade la fecha de la cita en el objeto
     seleccionarHora(); // Añade la hora de la cita en el objeto
@@ -108,9 +110,11 @@ function paginaSiguiente() {
 
 async function consultarAPI() {
     try {
-        const url = 'http://localhost:3000/api/servicios';
+        const url = 'http://127.0.0.1:3000/api/servicios';
         const resultado = await fetch(url);
         const servicios = await resultado.json();
+
+        // console.log(servicios);
 
         mostrarServicios(servicios);
 
@@ -120,6 +124,8 @@ async function consultarAPI() {
 }
 
 function mostrarServicios(servicios) {
+
+    // console.log(servicios);
     servicios.forEach( (servicio) => {
        const {id, nombre, precio} = servicio;
 
@@ -161,7 +167,12 @@ function seleccionarServicio(servicio) {
         divServicio.classList.add('seleccionado');
     }
 
-    console.log(cita);
+    // console.log(cita);
+}
+
+function idCliente() {
+    const id = document.querySelector('#id').value;
+    cita.id = id;
 }
 
 function nombreCliente() {
@@ -197,7 +208,7 @@ function seleccionarHora() {
         }else {
             cita.hora = e.target.value;
 
-            console.log(cita);
+            // console.log(cita);
         }
     });
 }
@@ -305,6 +316,51 @@ function mostrarResumen() {
 
 }
 
-function reservarCita() {
-    console.log('Reservando Cita');
+async function reservarCita() {
+
+    const {id, fecha, hora, servicios} = cita;
+
+    const idServicios = servicios.map( servicio => servicio.id );
+    // console.log(idServicios);
+
+    const datos = new FormData();
+    datos.append('fecha', fecha);
+    datos.append('hora', hora);
+    datos.append('usuarioId', id);
+    datos.append('servicios', idServicios);
+
+    try {
+
+    // Petición para la API
+    const url = 'http://127.0.0.1:3000/api/citas';
+
+    const respuesta = await fetch(url, {
+        method: 'POST',
+        body: datos
+    });
+
+    const resultado = await respuesta.json();
+    console.log(resultado.resultado);
+
+    if(resultado.resultado) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Cita Creada',
+            text: 'Tu cita fue creada correctamente',
+          }).then( () => {
+              setTimeout(() => {
+                window.location.reload();
+              }, 3000);
+          });
+    }
+
+    // console.log([...datos]); // VER INFORMACIÓN ANTES DE PASARLA
+        
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Hubo un Error al Guardar la Cita'
+          })
+    }
 }
